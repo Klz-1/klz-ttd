@@ -1,1062 +1,491 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<title>Lumio Tasks</title>
+
+<!-- iOS add-to-home-screen niceties -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lumio">
-<title>Lumio - Secure Task Manager</title>
+<meta name="apple-mobile-web-app-title" content="Lumio Tasks">
 
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-  }
+  :root { --fg:#0b0b0b; --bg:#fff; --muted:#6b7280; --sep:#e5e7eb; --accent:#2563eb; --ok:#059669; --warn:#b45309; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body { margin:0; font:16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans"; color:var(--fg); background:var(--bg); }
 
-  body {
-    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f2f2f7;
-    color: #000;
-    overflow: hidden;
-    height: 100vh;
-    height: 100dvh;
-  }
+  header { position:sticky; top:0; z-index:5; backdrop-filter:saturate(1.2) blur(8px);
+           background:rgba(255,255,255,.85); border-bottom:1px solid var(--sep); }
+  .bar { max-width:800px; margin:0 auto; display:flex; align-items:center; gap:10px; padding:12px; }
+  h1 { font-size:18px; font-weight:700; margin:0; }
+  .grow { flex:1; }
+  .btn { appearance:none; border:1px solid var(--sep); background:#fff; color:var(--fg);
+         padding:8px 10px; border-radius:10px; font-weight:600; cursor:pointer; }
+  .btn.primary { border-color:var(--accent); color:var(--accent); }
+  .tabs { display:flex; gap:8px; }
+  .tab { padding:6px 10px; border:1px solid var(--sep); border-radius:999px; font-size:13px; color:var(--muted); cursor:pointer; }
+  .tab.active { border-color:var(--accent); color:var(--accent); }
 
-  @media (prefers-color-scheme: dark) {
-    body {
-      background: #000;
-      color: #fff;
-    }
-  }
-
-  .app {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-  }
-
-  /* Setup Screen */
-  .setup-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    padding: 20px;
-    text-align: center;
-  }
-
-  .setup-logo {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #5856d6, #7c7aff);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    margin-bottom: 30px;
-    color: white;
-  }
-
-  .setup-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-
-  .setup-subtitle {
-    font-size: 16px;
-    color: #8e8e93;
-    margin-bottom: 40px;
-  }
-
-  .setup-form {
-    width: 100%;
-    max-width: 400px;
-  }
-
-  .input-group {
-    margin-bottom: 20px;
-    text-align: left;
-  }
-
-  .input-label {
-    display: block;
-    font-size: 14px;
-    color: #8e8e93;
-    margin-bottom: 8px;
-  }
-
-  .input-field {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #d1d1d6;
-    border-radius: 10px;
-    font-size: 16px;
-    background: white;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .input-field {
-      background: #1c1c1e;
-      border-color: #48484a;
-      color: white;
-    }
-  }
-
-  .setup-btn {
-    width: 100%;
-    padding: 14px;
-    background: #5856d6;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-
-  .setup-info {
-    margin-top: 30px;
-    padding: 15px;
-    background: rgba(88,86,214,0.1);
-    border-radius: 10px;
-    font-size: 14px;
-    color: #5856d6;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .setup-info {
-      background: rgba(88,86,214,0.2);
-    }
-  }
-
-  /* Main App */
-  .main-app {
-    display: none;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .main-app.active {
-    display: flex;
-  }
-
-  /* Header */
-  header {
-    background: rgba(255,255,255,0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 0.5px solid rgba(0,0,0,0.1);
-    padding: env(safe-area-inset-top) 16px 0 16px;
-    padding-bottom: 12px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    header {
-      background: rgba(28,28,30,0.8);
-      border-bottom-color: rgba(255,255,255,0.1);
-    }
-  }
-
-  .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-icon {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, #5856d6, #7c7aff);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 18px;
-  }
-
-  .logo-text {
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 8px;
-  }
-
-  .btn-icon {
-    padding: 8px 12px;
-    background: #5856d6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  /* Status Bar */
-  .status-bar {
-    background: rgba(88,86,214,0.1);
-    padding: 8px 16px;
-    font-size: 13px;
-    color: #5856d6;
-    text-align: center;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .status-bar {
-      background: rgba(88,86,214,0.2);
-    }
-  }
-
-  .status-bar.error {
-    background: rgba(255,59,48,0.1);
-    color: #ff3b30;
-  }
-
-  /* Main Content */
-  main {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px;
-    padding-bottom: 100px;
-  }
-
-  /* Cards */
-  .card {
-    background: white;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    transform: translateX(0);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .card {
-      background: #1c1c1e;
-      box-shadow: none;
-    }
-  }
-
-  .card:active {
-    transform: scale(0.98);
-  }
-
-  .card-check {
+  main { max-width:800px; margin:0 auto; padding:8px 12px 32px; }
+  .list .item { position:relative; display:flex; align-items:center; gap:12px; padding:14px 12px; background:#fff;
+                border:1px solid var(--sep); border-radius:14px; margin:10px 0; overflow:hidden; }
+  .item .meta { flex:1; min-width:0; }
+  .title { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sub { color:var(--muted); font-size:13px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pill { font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--sep); color:var(--muted); }
+  .item.done { opacity:.35; }
+  
+  /* Checkbox styles */
+  .checkbox {
     width: 24px;
     height: 24px;
-    border: 2px solid #d1d1d6;
-    border-radius: 50%;
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+    background: #fff;
   }
-
-  .card.swiped .card-check {
-    background: #34c759;
-    border-color: #34c759;
+  .checkbox:hover {
+    background: rgba(37, 99, 235, 0.05);
+    transform: scale(1.05);
   }
-
-  .card.swiped .card-check::after {
+  .checkbox.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .checkbox.checked::after {
     content: '✓';
     color: white;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: bold;
   }
-
-  .card-body {
-    flex: 1;
-    min-width: 0;
+  .item.completing {
+    animation: slideOut 0.3s ease forwards;
   }
-
-  .card-title {
-    font-size: 17px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .card-meta {
-    font-size: 14px;
-    color: #8e8e93;
-  }
-
-  .badge {
-    padding: 4px 10px;
-    background: #5856d6;
-    color: white;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .card.completing {
-    animation: slideOut 0.3s forwards;
-  }
-
   @keyframes slideOut {
     to {
-      transform: translateX(100%);
+      transform: translateX(20px);
       opacity: 0;
     }
   }
 
-  /* Empty State */
-  .empty {
-    text-align: center;
-    padding: 60px 20px;
-  }
+  .detail { display:none; padding:8px; }
+  .back { color:var(--accent); font-weight:700; cursor:pointer; display:inline-block; margin:8px 0 12px; }
+  .d-title { font-size:18px; font-weight:800; margin:0 0 6px; }
+  .d-meta { color:var(--muted); font-size:14px; }
+  .d-snippet { margin-top:12px; }
 
-  .empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-  }
+  .toast { position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+           background:#111; color:#fff; padding:10px 12px; border-radius:999px; font-size:14px; opacity:0; transition:opacity .2s; }
+  .toast.show { opacity:1; }
 
-  .empty-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .empty-text {
-    color: #8e8e93;
-    font-size: 16px;
-  }
-
-  /* Bottom Sheet */
-  .sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    z-index: 1000;
-    max-height: 80vh;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .sheet {
-      background: #1c1c1e;
-    }
-  }
-
-  .sheet.open {
-    transform: translateY(0);
-  }
-
-  .sheet-handle {
-    padding: 12px;
-    text-align: center;
-  }
-
-  .sheet-bar {
-    width: 40px;
-    height: 4px;
-    background: #d1d1d6;
-    border-radius: 2px;
-    margin: 0 auto;
-  }
-
-  .sheet-content {
-    padding: 0 20px 20px;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  .sheet-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .sheet-meta {
-    color: #8e8e93;
-    font-size: 15px;
-    margin-bottom: 20px;
-  }
-
-  .sheet-body {
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 20px;
-  }
-
-  .sheet-actions {
-    display: flex;
-    gap: 12px;
-    padding: 16px 20px;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
-    border-top: 0.5px solid rgba(0,0,0,0.1);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .sheet-actions {
-      border-top-color: rgba(255,255,255,0.1);
-    }
-  }
-
-  .btn {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 14px;
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    background: #f2f2f7;
-    color: #000;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .btn {
-      background: #2c2c2e;
-      color: #fff;
-    }
-  }
-
-  .btn-primary {
-    background: #5856d6;
-    color: white;
-  }
-
-  /* Backdrop */
-  .backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s;
-    z-index: 999;
-  }
-
-  .backdrop.show {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  /* Tabs */
-  nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 0.5px solid rgba(0,0,0,0.1);
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  }
-
-  @media (prefers-color-scheme: dark) {
-    nav {
-      background: rgba(28,28,30,0.95);
-      border-top-color: rgba(255,255,255,0.1);
-    }
-  }
-
-  .tabs {
-    display: flex;
-    gap: 12px;
-  }
-
-  .tab {
-    flex: 1;
-    padding: 12px;
-    background: #f2f2f7;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #8e8e93;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .tab {
-      background: #2c2c2e;
-    }
-  }
-
-  .tab.active {
-    background: #5856d6;
-    color: white;
-  }
-
-  /* Loading */
-  .loading {
-    text-align: center;
-    padding: 20px;
-    color: #8e8e93;
-  }
-
-  .skeleton {
-    background: #f2f2f7;
-    height: 80px;
-    border-radius: 16px;
-    margin-bottom: 12px;
-    animation: pulse 1.5s infinite;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .skeleton {
-      background: #2c2c2e;
-    }
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
+  .empty { color:var(--muted); text-align:center; padding:28px 10px; }
+  .loading { color:var(--muted); text-align:center; padding:28px 10px; }
+  .error { color:#dc2626; text-align:center; padding:28px 10px; }
 </style>
 </head>
 <body>
 
-<div class="app">
-  <!-- Setup Screen -->
-  <div class="setup-screen" id="setupScreen">
-    <div class="setup-logo">✨</div>
-    <h1 class="setup-title">Lumio Setup</h1>
-    <p class="setup-subtitle">Connect to your Google Apps Script backend</p>
-    
-    <div class="setup-form">
-      <div class="input-group">
-        <label class="input-label">Apps Script URL</label>
-        <input type="text" class="input-field" id="apiUrl" 
-               placeholder="https://script.google.com/macros/s/.../exec">
-      </div>
-      
-      <div class="input-group">
-        <label class="input-label">Access Token</label>
-        <input type="password" class="input-field" id="apiToken" 
-               placeholder="Enter your access token">
-      </div>
-      
-      <button class="setup-btn" onclick="saveSetup()">Connect & Continue</button>
-      
-      <div class="setup-info">
-        ℹ️ Your credentials are stored locally in this browser only. 
-        They are never sent to any external server except your own Google Apps Script.
-      </div>
+<header>
+  <div class="bar">
+    <h1>Lumio</h1>
+    <div class="tabs">
+      <div id="tabTasks" class="tab active">Tasks</div>
+      <div id="tabNotes" class="tab">Notes</div>
     </div>
+    <div class="grow"></div>
+    <button id="addTaskBtn" class="btn primary">+ Add</button>
+    <button id="refreshBtn" class="btn">Refresh</button>
   </div>
+</header>
 
-  <!-- Main App -->
-  <div class="main-app" id="mainApp">
-    <header>
-      <div class="header-content">
-        <div class="header-left">
-          <div class="logo-icon">✨</div>
-          <div class="logo-text">Lumio</div>
-        </div>
-        <div class="header-actions">
-          <button class="btn-icon" onclick="refresh()">↻</button>
-          <button class="btn-icon" onclick="resetSetup()">⚙️</button>
-        </div>
-      </div>
-    </header>
+<main>
+  <!-- TASKS LIST -->
+  <section id="viewTasks" class="list">
+    <div class="loading">Loading tasks...</div>
+  </section>
 
-    <div class="status-bar" id="statusBar">Connected</div>
+  <!-- NOTES LIST -->
+  <section id="viewNotes" class="list" style="display:none;">
+    <div class="loading">Loading notes...</div>
+  </section>
 
-    <main>
-      <div id="tasksView" class="view">
-        <div class="loading">Loading tasks...</div>
-      </div>
-      <div id="notesView" class="view" style="display: none;">
-        <div class="loading">Loading notes...</div>
-      </div>
-    </main>
+  <!-- DETAIL VIEW (shared) -->
+  <section id="detail" class="detail">
+    <div class="back" id="backBtn">← Back</div>
+    <h2 id="dTitle" class="d-title"></h2>
+    <div id="dMeta" class="d-meta"></div>
+    <p id="dSnippet" class="d-snippet"></p>
+    <div id="dActions" style="margin-top:16px;"></div>
+  </section>
+</main>
 
-    <nav>
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('tasks')">Tasks</button>
-        <button class="tab" onclick="switchTab('notes')">Notes</button>
-      </div>
-    </nav>
-
-    <div class="backdrop" onclick="closeSheet()"></div>
-
-    <div class="sheet" id="sheet">
-      <div class="sheet-handle" onclick="closeSheet()">
-        <div class="sheet-bar"></div>
-      </div>
-      <div class="sheet-content">
-        <div class="sheet-title" id="sheetTitle"></div>
-        <div class="sheet-meta" id="sheetMeta"></div>
-        <div class="sheet-body" id="sheetBody"></div>
-      </div>
-      <div class="sheet-actions">
-        <button class="btn" onclick="shareItem()">Share</button>
-        <button class="btn btn-primary" id="sheetAction">Complete</button>
-      </div>
-    </div>
-  </div>
-</div>
+<div id="toast" class="toast"></div>
 
 <script>
-// Secure Configuration Management
-class SecureConfig {
-  constructor() {
-    this.storageKey = 'lumio_secure_config';
-    this.config = this.load();
-  }
-
-  load() {
-    try {
-      const stored = localStorage.getItem(this.storageKey);
-      if (stored) {
-        // Decrypt if you want extra security (optional)
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Failed to load config', e);
-    }
-    return null;
-  }
-
-  save(apiUrl, token) {
-    // Basic validation
-    if (!apiUrl || !apiUrl.startsWith('https://script.google.com/')) {
-      throw new Error('Invalid Apps Script URL');
-    }
-    
-    if (!token || token.length < 4) {
-      throw new Error('Invalid token');
-    }
-
-    const config = {
-      apiUrl: apiUrl.trim(),
-      token: token.trim(),
-      savedAt: new Date().toISOString()
-    };
-
-    // Store encrypted if needed (optional)
-    localStorage.setItem(this.storageKey, JSON.stringify(config));
-    this.config = config;
-    return true;
-  }
-
-  clear() {
-    localStorage.removeItem(this.storageKey);
-    this.config = null;
-  }
-
-  isConfigured() {
-    return this.config && this.config.apiUrl && this.config.token;
-  }
-}
-
-// Global instances
-const config = new SecureConfig();
-let STATE = {
-  currentView: 'tasks',
-  tasks: [],
-  notes: [],
-  currentItem: null
+// CONFIGURATION - Update these with your n8n webhook URLs
+const API_CONFIG = {
+  // Replace these with your actual n8n webhook URLs after importing the workflow
+  GET_TASKS_URL: 'https://n8n.chouseservice.com/webhook/get-tasks',
+  GET_NOTES_URL: 'https://n8n.chouseservice.com/webhook/get-notes',
+  COMPLETE_TASK_URL: 'https://n8n.chouseservice.com/webhook/complete-task',
+  SECRET: 'klz-ttd'
 };
 
-// API Client
-class SecureAPI {
-  constructor() {
-    this.lastError = null;
-  }
+let STATE = { tasks: [], notes: [], mode: 'tasks', current: null };
 
-  async call(endpoint, params = {}) {
-    if (!config.isConfigured()) {
-      throw new Error('Not configured');
-    }
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-    const url = new URL(config.config.apiUrl);
-    
-    // For GET requests
-    if (endpoint === 'getTasks' || endpoint === 'getNotes') {
-      url.searchParams.append('view', endpoint.replace('get', '').toLowerCase());
-      url.searchParams.append('token', config.config.token);
-      
-      try {
-        const response = await fetch(url.toString());
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-      } catch (error) {
-        this.lastError = error;
-        throw error;
-      }
-    }
-    
-    // For POST requests (complete task)
-    if (endpoint === 'completeTask') {
-      const formData = new FormData();
-      formData.append('token', config.config.token);
-      formData.append('action', 'completeTask');
-      formData.append('task_id', params.task_id);
-      
-      try {
-        const response = await fetch(config.config.apiUrl, {
-          method: 'POST',
-          body: formData
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-      } catch (error) {
-        this.lastError = error;
-        throw error;
-      }
-    }
-  }
+function toast(msg) {
+  const t = $('#toast'); 
+  t.textContent = msg; 
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1600);
 }
 
-const api = new SecureAPI();
-
-// Setup Functions
-function saveSetup() {
-  const apiUrl = document.getElementById('apiUrl').value;
-  const token = document.getElementById('apiToken').value;
-  
-  try {
-    config.save(apiUrl, token);
-    showMainApp();
-    loadTasks();
-  } catch (error) {
-    alert('Setup failed: ' + error.message);
-  }
+function escapeHtml(s='') {
+  return s.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
-function resetSetup() {
-  if (confirm('This will clear your saved configuration. Continue?')) {
-    config.clear();
-    showSetupScreen();
-  }
-}
-
-// UI Management
-function showSetupScreen() {
-  document.getElementById('setupScreen').style.display = 'flex';
-  document.getElementById('mainApp').classList.remove('active');
-}
-
-function showMainApp() {
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('mainApp').classList.add('active');
-  updateStatus('Connected', false);
-}
-
-function updateStatus(message, isError = false) {
-  const bar = document.getElementById('statusBar');
-  bar.textContent = message;
-  bar.classList.toggle('error', isError);
-}
-
-// Data Loading
+// API calls using fetch instead of google.script.run
 async function loadTasks() {
-  const container = document.getElementById('tasksView');
-  container.innerHTML = '<div class="loading">Loading tasks...</div>';
+  const wrap = $('#viewTasks');
+  wrap.innerHTML = '<div class="loading">Loading tasks...</div>';
   
   try {
-    const data = await api.call('getTasks');
+    const response = await fetch(API_CONFIG.GET_TASKS_URL);
+    if (!response.ok) throw new Error('Failed to fetch tasks');
+    
+    const data = await response.json();
     STATE.tasks = data.rows || [];
     renderTasks();
-    updateStatus('Updated ' + new Date().toLocaleTimeString(), false);
-  } catch (error) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">Failed to load tasks</div></div>';
-    updateStatus('Connection failed', true);
+  } catch (err) {
+    console.error('Failed to load tasks:', err);
+    wrap.innerHTML = '<div class="error">Failed to load tasks. Please check your connection.</div>';
+    toast('Failed to load tasks');
   }
 }
 
 async function loadNotes() {
-  const container = document.getElementById('notesView');
-  container.innerHTML = '<div class="loading">Loading notes...</div>';
+  const wrap = $('#viewNotes');
+  wrap.innerHTML = '<div class="loading">Loading notes...</div>';
   
   try {
-    const data = await api.call('getNotes');
+    const response = await fetch(API_CONFIG.GET_NOTES_URL);
+    if (!response.ok) throw new Error('Failed to fetch notes');
+    
+    const data = await response.json();
     STATE.notes = data.rows || [];
     renderNotes();
-    updateStatus('Updated ' + new Date().toLocaleTimeString(), false);
-  } catch (error) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">Failed to load notes</div></div>';
-    updateStatus('Connection failed', true);
+  } catch (err) {
+    console.error('Failed to load notes:', err);
+    wrap.innerHTML = '<div class="error">Failed to load notes. Please check your connection.</div>';
+    toast('Failed to load notes');
   }
 }
 
-async function completeTask(taskId) {
+async function completeTask(task_id) {
   try {
-    const result = await api.call('completeTask', { task_id: taskId });
+    const response = await fetch(API_CONFIG.COMPLETE_TASK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        task_id: task_id,
+        secret: API_CONFIG.SECRET
+      })
+    });
+    
+    if (!response.ok) throw new Error('Failed to complete task');
+    
+    const result = await response.json();
     if (result.ok) {
-      STATE.tasks = STATE.tasks.filter(t => t.task_id !== taskId);
-      renderTasks();
-      closeSheet();
-      updateStatus('Task completed', false);
+      toast('Marked done');
+      return true;
     } else {
-      alert('Failed to complete task');
+      toast('Failed to update');
+      return false;
     }
-  } catch (error) {
-    alert('Error: ' + error.message);
+  } catch (err) {
+    console.error('Failed to complete task:', err);
+    toast('Failed to update');
+    return false;
   }
 }
 
-// Rendering
+/* ---------- RENDERERS ---------- */
 function renderTasks() {
-  const container = document.getElementById('tasksView');
-  
+  $('#detail').style.display = 'none';
+  $('#viewNotes').style.display = 'none';
+  const wrap = $('#viewTasks');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '';
+
   if (!STATE.tasks.length) {
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">✅</div>
-        <div class="empty-title">All done!</div>
-        <div class="empty-text">No pending tasks</div>
-      </div>
-    `;
+    wrap.innerHTML = `<div class="empty">No open tasks. Enjoy the calm ✨</div>`;
     return;
   }
-  
-  container.innerHTML = STATE.tasks.map(task => {
-    const meta = [];
-    if (task.owner) meta.push(task.owner);
-    if (task.due_date_iso) meta.push(`Due ${task.due_date_iso}`);
-    
-    return `
-      <div class="card" data-id="${task.task_id}">
-        <div class="card-check"></div>
-        <div class="card-body">
-          <div class="card-title">${escapeHtml(task.action || 'Untitled')}</div>
-          ${meta.length ? `<div class="card-meta">${escapeHtml(meta.join(' • '))}</div>` : ''}
+
+  STATE.tasks.forEach((t, idx) => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.dataset.index = idx;
+    el.dataset.taskId = t.task_id;
+
+    // Create checkbox element
+    const checkbox = document.createElement('div');
+    checkbox.className = 'checkbox';
+    checkbox.addEventListener('click', async (e) => {
+      e.stopPropagation(); // Prevent opening detail view
+      checkbox.classList.add('checked');
+      el.classList.add('completing');
+      
+      // Wait for animation
+      setTimeout(async () => {
+        const success = await completeTask(t.task_id);
+        if (success) {
+          STATE.tasks = STATE.tasks.filter(x => x.task_id !== t.task_id);
+          renderTasks();
+        } else {
+          // Reset if failed
+          checkbox.classList.remove('checked');
+          el.classList.remove('completing');
+        }
+      }, 300);
+    });
+
+    // Click on item (not checkbox) opens detail
+    el.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('checkbox')) {
+        openTaskDetail(t);
+      }
+    });
+
+    // Optional: Keep swipe for mobile users
+    let startX = 0, swiped = false;
+    el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; swiped = false; });
+    el.addEventListener('touchmove', e => {
+      const dx = Math.max(0, e.touches[0].clientX - startX);
+      el.style.transform = `translateX(${dx}px)`;
+      if (dx > 100) swiped = true;
+    });
+    el.addEventListener('touchend', async e => {
+      el.style.transform = 'translateX(0)';
+      if (swiped) {
+        el.classList.add('completing');
+        setTimeout(async () => {
+          const success = await completeTask(t.task_id);
+          if (success) {
+            STATE.tasks = STATE.tasks.filter(x => x.task_id !== t.task_id);
+            renderTasks();
+          } else {
+            el.classList.remove('completing');
+          }
+        }, 300);
+      }
+    });
+
+    el.innerHTML = `
+      <div class="meta">
+        <div class="title">${escapeHtml(t.action || '(no action)')}</div>
+        <div class="sub">
+          ${escapeHtml(t.owner || '')}
+          ${t.due_date_iso ? ' • Due ' + escapeHtml(t.due_date_iso) : ''}
+          ${t.priority ? ' • ' + escapeHtml(t.priority) : ''}
         </div>
-        <div class="badge">${escapeHtml(task.status || 'TODO')}</div>
       </div>
+      <span class="pill">${escapeHtml(t.status || 'todo')}</span>
     `;
-  }).join('');
-  
-  // Add event listeners
-  document.querySelectorAll('#tasksView .card').forEach(card => {
-    setupCardInteractions(card);
+    
+    // Append checkbox to the right
+    el.appendChild(checkbox);
+    wrap.appendChild(el);
   });
 }
 
 function renderNotes() {
-  const container = document.getElementById('notesView');
-  
+  $('#detail').style.display = 'none';
+  $('#viewTasks').style.display = 'none';
+  const wrap = $('#viewNotes');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '';
+
   if (!STATE.notes.length) {
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">📝</div>
-        <div class="empty-title">No notes</div>
-        <div class="empty-text">Your notes will appear here</div>
+    wrap.innerHTML = `<div class="empty">No notes yet. Record a quick brain dump 🎙️</div>`;
+    return;
+  }
+
+  STATE.notes.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.addEventListener('click', () => openNoteDetail(n));
+    el.innerHTML = `
+      <div class="meta">
+        <div class="title">${escapeHtml(n.title || '(note)')}</div>
+        <div class="sub">${escapeHtml(n.created_at || '')}</div>
+      </div>
+      <span class="pill">note</span>
+    `;
+    wrap.appendChild(el);
+  });
+}
+
+/* ---------- DETAIL VIEWS ---------- */
+function openTaskDetail(t) {
+  STATE.current = { type:'task', data:t };
+  $('#viewTasks').style.display = 'none';
+  $('#viewNotes').style.display = 'none';
+  $('#detail').style.display = 'block';
+
+  $('#dTitle').textContent = t.action || '(no action)';
+  $('#dMeta').textContent = [
+    t.owner || '',
+    t.due_date_iso ? `Due ${t.due_date_iso}` : '',
+    t.priority || '',
+  ].filter(Boolean).join(' • ');
+  $('#dSnippet').textContent = t.transcript_snippet || '';
+
+  $('#dActions').innerHTML = `
+    <button class="btn" onclick="shareText('${encodeURIComponent(t.action || '')}')">Share</button>
+    <button class="btn" onclick="openLink('${(t.transcript_uri||'').replace(/'/g,'%27')}')">Transcript</button>
+    <button class="btn primary" onclick="completeAndBack('${(t.task_id||'').replace(/'/g,'%27')}')">Mark done</button>
+  `;
+}
+
+function openNoteDetail(n) {
+  STATE.current = { type:'note', data:n };
+  $('#viewTasks').style.display = 'none';
+  $('#viewNotes').style.display = 'none';
+  $('#detail').style.display = 'block';
+
+  $('#dTitle').textContent = n.title || '(note)';
+  $('#dMeta').textContent  = n.created_at || '';
+  $('#dSnippet').textContent = n.summary || '';
+
+  $('#dActions').innerHTML = `
+    <button class="btn" onclick="shareText('${encodeURIComponent(n.summary || n.title || '')}')">Share</button>
+    <button class="btn" onclick="openLink('${(n.transcript_uri||'').replace(/'/g,'%27')}')">Transcript</button>
+  `;
+}
+
+/* ---------- ACTIONS ---------- */
+async function completeAndBack(task_id) {
+  const success = await completeTask(task_id);
+  if (success) {
+    // remove from list immediately
+    STATE.tasks = STATE.tasks.filter(x => x.task_id !== task_id);
+    $('#detail').style.display = 'none';
+    if (STATE.mode === 'tasks') { 
+      $('#viewTasks').style.display = 'block'; 
+      renderTasks(); 
+    } else { 
+      $('#viewNotes').style.display = 'block'; 
+    }
+  }
+}
+
+function openLink(url) {
+  if (!url) { toast('No link'); return; }
+  window.open(url, '_blank', 'noopener');
+}
+
+function shareText(encoded) {
+  const text = decodeURIComponent(encoded || '');
+  if (navigator.share) {
+    navigator.share({ text }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(text);
+    toast('Copied');
+  }
+}
+
+/* ---------- NAV / EVENTS ---------- */
+$('#backBtn').onclick = () => {
+  $('#detail').style.display = 'none';
+  if (STATE.mode === 'tasks') { 
+    $('#viewTasks').style.display = 'block'; 
+  } else { 
+    $('#viewNotes').style.display = 'block'; 
+  }
+};
+
+$('#refreshBtn').onclick = async () => {
+  if (STATE.mode === 'tasks') {
+    await loadTasks(); 
+  } else {
+    await loadNotes();
+  }
+};
+
+$('#addTaskBtn').onclick = () => {
+  // This will invoke your iOS shortcut
+  window.location.href = 'shortcuts://run-shortcut?name=Jarvis';
+};
+
+$('#tabTasks').onclick = async () => {
+  STATE.mode = 'tasks';
+  $('#tabTasks').classList.add('active'); 
+  $('#tabNotes').classList.remove('active');
+  await loadTasks();
+};
+
+$('#tabNotes').onclick = async () => {
+  STATE.mode = 'notes';
+  $('#tabNotes').classList.add('active'); 
+  $('#tabTasks').classList.remove('active');
+  await loadNotes();
+};
+
+// Edge-swipe to go back from detail (left-to-right)
+(function enableBackSwipe(){
+  let sx=0, sy=0, tracking=false;
+  document.addEventListener('touchstart', e=>{
+    if ($('#detail').style.display !== 'block') return;
+    const t = e.touches[0]; 
+    sx = t.clientX; 
+    sy = t.clientY; 
+    tracking = sx < 30; // left edge
+  }, {passive:true});
+  document.addEventListener('touchmove', e=>{
+    if (!tracking) return;
+    const dx = e.touches[0].clientX - sx;
+    const dy = e.touches[0].clientY - sy;
+    if (Math.abs(dy) > 40) tracking = false;
+    if (dx > 80) { 
+      $('#backBtn').click(); 
+      tracking=false; 
+    }
+  }, {passive:true});
+})();
+
+/* ---------- BOOT ---------- */
+(async function init(){
+  // Check if API URLs are configured
+  if (API_CONFIG.GET_TASKS_URL.includes('YOUR-N8N-DOMAIN')) {
+    const wrap = $('#viewTasks');
+    wrap.innerHTML = `
+      <div class="error">
+        <p><strong>Setup Required:</strong></p>
+        <p>Please update the API_CONFIG at the top of this HTML file with your n8n webhook URLs.</p>
+        <p>1. Import the web-app-api.json workflow into n8n</p>
+        <p>2. Activate the workflow</p>
+        <p>3. Copy the webhook URLs from each webhook node</p>
+        <p>4. Update API_CONFIG in this file</p>
       </div>
     `;
     return;
   }
   
-  container.innerHTML = STATE.notes.map((note, idx) => `
-    <div class="card" data-idx="${idx}">
-      <div class="card-body">
-        <div class="card-title">${escapeHtml(note.title || 'Untitled')}</div>
-        <div class="card-meta">${escapeHtml(note.created_at || '')}</div>
-      </div>
-      <div class="badge">NOTE</div>
-    </div>
-  `).join('');
-  
-  // Add click listeners
-  document.querySelectorAll('#notesView .card').forEach(card => {
-    card.addEventListener('click', () => {
-      const idx = parseInt(card.dataset.idx);
-      openNoteDetail(STATE.notes[idx]);
-    });
-  });
-}
-
-// Card Interactions
-function setupCardInteractions(card) {
-  let startX = 0;
-  let currentX = 0;
-  let isDragging = false;
-  
-  // Touch events for swipe
-  card.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    isDragging = false;
-  });
-  
-  card.addEventListener('touchmove', (e) => {
-    currentX = e.touches[0].clientX;
-    const diff = currentX - startX;
-    
-    if (diff > 10) {
-      isDragging = true;
-      card.style.transform = `translateX(${Math.min(diff, 100)}px)`;
-      
-      if (diff > 50) {
-        card.classList.add('swiped');
-      } else {
-        card.classList.remove('swiped');
-      }
-    }
-  });
-  
-  card.addEventListener('touchend', () => {
-    const diff = currentX - startX;
-    
-    if (diff > 80) {
-      card.classList.add('completing');
-      setTimeout(() => {
-        completeTask(card.dataset.id);
-      }, 300);
-    } else {
-      card.style.transform = '';
-      card.classList.remove('swiped');
-      
-      if (!isDragging) {
-        const task = STATE.tasks.find(t => t.task_id === card.dataset.id);
-        if (task) openTaskDetail(task);
-      }
-    }
-  });
-  
-  // Click for desktop
-  card.addEventListener('click', (e) => {
-    if (!isDragging) {
-      const task = STATE.tasks.find(t => t.task_id === card.dataset.id);
-      if (task) openTaskDetail(task);
-    }
-  });
-}
-
-// Sheet Functions
-function openTaskDetail(task) {
-  STATE.currentItem = task;
-  
-  document.getElementById('sheetTitle').textContent = task.action || 'Task';
-  
-  const meta = [];
-  if (task.owner) meta.push(task.owner);
-  if (task.due_date_iso) meta.push(`Due ${task.due_date_iso}`);
-  if (task.priority) meta.push(`Priority: ${task.priority}`);
-  document.getElementById('sheetMeta').textContent = meta.join(' • ');
-  
-  document.getElementById('sheetBody').textContent = task.transcript_snippet || '';
-  
-  const btn = document.getElementById('sheetAction');
-  btn.textContent = 'Complete';
-  btn.onclick = () => completeTask(task.task_id);
-  
-  openSheet();
-}
-
-function openNoteDetail(note) {
-  STATE.currentItem = note;
-  
-  document.getElementById('sheetTitle').textContent = note.title || 'Note';
-  document.getElementById('sheetMeta').textContent = note.created_at || '';
-  document.getElementById('sheetBody').textContent = note.summary || '';
-  
-  const btn = document.getElementById('sheetAction');
-  btn.textContent = 'Done';
-  btn.onclick = closeSheet;
-  
-  openSheet();
-}
-
-function openSheet() {
-  document.getElementById('sheet').classList.add('open');
-  document.querySelector('.backdrop').classList.add('show');
-}
-
-function closeSheet() {
-  document.getElementById('sheet').classList.remove('open');
-  document.querySelector('.backdrop').classList.remove('show');
-}
-
-function shareItem() {
-  if (!STATE.currentItem) return;
-  const text = STATE.currentItem.action || STATE.currentItem.title || '';
-  
-  if (navigator.share) {
-    navigator.share({ text });
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
-  }
-}
-
-// Tab Switching
-function switchTab(view) {
-  STATE.currentView = view;
-  
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  
-  if (view === 'tasks') {
-    document.getElementById('tasksView').style.display = 'block';
-    document.getElementById('notesView').style.display = 'none';
-    if (!STATE.tasks.length) loadTasks();
-  } else {
-    document.getElementById('notesView').style.display = 'block';
-    document.getElementById('tasksView').style.display = 'none';
-    if (!STATE.notes.length) loadNotes();
-  }
-}
-
-function refresh() {
-  STATE.currentView === 'tasks' ? loadTasks() : loadNotes();
-}
-
-// Helper
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text || '';
-  return div.innerHTML;
-}
-
-// Initialize
-window.addEventListener('load', () => {
-  if (config.isConfigured()) {
-    // Load saved URL for convenience
-    document.getElementById('apiUrl').value = config.config.apiUrl;
-    showMainApp();
-    loadTasks();
-  } else {
-    showSetupScreen();
-  }
-});
-
-// Optional: Add PWA support
-if ('serviceWorker' in navigator) {
-  // Register service worker for offline support
-}
+  await loadTasks();
+})();
 </script>
-
 </body>
 </html>
