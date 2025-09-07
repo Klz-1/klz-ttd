@@ -8,86 +8,431 @@
 <!-- iOS add-to-home-screen niceties -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lumio Tasks">
+<meta name="apple-mobile-web-app-title" content="Lumio">
 
 <style>
-  :root { --fg:#0b0b0b; --bg:#fff; --muted:#6b7280; --sep:#e5e7eb; --accent:#2563eb; --ok:#059669; --warn:#b45309; }
-  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body { height:100%; }
-  body { margin:0; font:16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Noto Sans"; color:var(--fg); background:var(--bg); }
-
-  header { position:sticky; top:0; z-index:5; backdrop-filter:saturate(1.2) blur(8px);
-           background:rgba(255,255,255,.85); border-bottom:1px solid var(--sep); }
-  .bar { max-width:800px; margin:0 auto; display:flex; align-items:center; gap:10px; padding:12px; }
-  h1 { font-size:18px; font-weight:700; margin:0; }
-  .grow { flex:1; }
-  .btn { appearance:none; border:1px solid var(--sep); background:#fff; color:var(--fg);
-         padding:8px 10px; border-radius:10px; font-weight:600; cursor:pointer; }
-  .btn.primary { border-color:var(--accent); color:var(--accent); }
-  .tabs { display:flex; gap:8px; }
-  .tab { padding:6px 10px; border:1px solid var(--sep); border-radius:999px; font-size:13px; color:var(--muted); cursor:pointer; }
-  .tab.active { border-color:var(--accent); color:var(--accent); }
-
-  main { max-width:800px; margin:0 auto; padding:8px 12px 32px; }
-  .list .item { position:relative; display:flex; align-items:center; gap:12px; padding:14px 12px; background:#fff;
-                border:1px solid var(--sep); border-radius:14px; margin:10px 0; overflow:hidden; }
-  .item .meta { flex:1; min-width:0; }
-  .title { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sub { color:var(--muted); font-size:13px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .pill { font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--sep); color:var(--muted); }
-  .item.done { opacity:.35; }
+  :root { 
+    --fg:#000000; 
+    --bg:#fafafa; 
+    --card:#ffffff;
+    --muted:#64748b; 
+    --sep:#e2e8f0; 
+    --accent:#3b82f6; 
+    --accent-light:#dbeafe;
+    --ok:#10b981; 
+    --warn:#f59e0b;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+  }
   
-  /* Checkbox styles */
+  * { 
+    box-sizing:border-box; 
+    -webkit-tap-highlight-color:transparent; 
+  }
+  
+  html,body { 
+    height:100%; 
+  }
+  
+  body { 
+    margin:0; 
+    font:15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+    color:var(--fg); 
+    background:var(--bg); 
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header with glassmorphism */
+  header { 
+    position:sticky; 
+    top:0; 
+    z-index:10; 
+    backdrop-filter:saturate(1.8) blur(20px);
+    background:rgba(250,250,250,.72); 
+    border-bottom:1px solid var(--sep); 
+  }
+  
+  .bar { 
+    max-width:640px; 
+    margin:0 auto; 
+    display:flex; 
+    align-items:center; 
+    gap:12px; 
+    padding:14px 16px; 
+  }
+  
+  h1 { 
+    font-size:17px; 
+    font-weight:700; 
+    margin:0; 
+    letter-spacing:-0.3px;
+  }
+  
+  .grow { flex:1; }
+  
+  /* Refined buttons */
+  .btn { 
+    appearance:none; 
+    border:none;
+    background:var(--card); 
+    color:var(--fg);
+    padding:7px 12px; 
+    border-radius:20px; 
+    font-size:14px;
+    font-weight:600; 
+    cursor:pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.15s ease;
+  }
+  
+  .btn:active {
+    transform: scale(0.96);
+  }
+  
+  .btn.primary { 
+    background:var(--accent); 
+    color:#fff;
+  }
+  
+  .btn.primary:hover {
+    background:#2563eb;
+  }
+  
+  /* Tab pills */
+  .tabs { 
+    display:flex; 
+    gap:6px;
+    background:var(--sep);
+    padding:2px;
+    border-radius:20px;
+  }
+  
+  .tab { 
+    padding:5px 14px; 
+    border-radius:18px; 
+    font-size:13px; 
+    font-weight:600;
+    color:var(--muted); 
+    cursor:pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .tab.active { 
+    background:var(--card); 
+    color:var(--accent);
+    box-shadow: var(--shadow);
+  }
+
+  /* Main content area */
+  main { 
+    max-width:640px; 
+    margin:0 auto; 
+    padding:16px 16px 32px; 
+  }
+  
+  /* Task cards with better shadows */
+  .list .item { 
+    position:relative; 
+    display:flex; 
+    align-items:center; 
+    gap:14px; 
+    padding:16px; 
+    background:var(--card);
+    border:1px solid var(--sep); 
+    border-radius:16px; 
+    margin:12px 0; 
+    overflow:hidden;
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+    cursor:pointer;
+  }
+  
+  .list .item:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+  
+  .list .item:active {
+    transform: scale(0.99);
+  }
+  
+  .item .meta { 
+    flex:1; 
+    min-width:0; 
+  }
+  
+  .title { 
+    font-weight:600; 
+    font-size:15px;
+    letter-spacing:-0.2px;
+    white-space:nowrap; 
+    overflow:hidden; 
+    text-overflow:ellipsis;
+    margin-bottom:2px;
+  }
+  
+  .sub { 
+    color:var(--muted); 
+    font-size:13px; 
+    white-space:nowrap; 
+    overflow:hidden; 
+    text-overflow:ellipsis; 
+  }
+  
+  /* Priority indicators */
+  .pill { 
+    font-size:11px; 
+    font-weight:600;
+    padding:3px 10px; 
+    border-radius:12px; 
+    background:var(--accent-light);
+    color:var(--accent);
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+  }
+  
+  .pill.high {
+    background:#fee2e2;
+    color:#dc2626;
+  }
+  
+  .item.done { 
+    opacity:.35; 
+  }
+  
+  /* Modern checkbox */
   .checkbox {
-    width: 24px;
-    height: 24px;
-    border: 2px solid var(--accent);
-    border-radius: 6px;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--sep);
+    border-radius: 11px;
     cursor: pointer;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    background: #fff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--card);
+    position:relative;
   }
+  
   .checkbox:hover {
-    background: rgba(37, 99, 235, 0.05);
-    transform: scale(1.05);
+    border-color: var(--accent);
+    background: var(--accent-light);
   }
+  
   .checkbox.checked {
     background: var(--accent);
     border-color: var(--accent);
+    transform: scale(0.9);
   }
+  
   .checkbox.checked::after {
-    content: '✓';
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
   }
+  
+  /* Completion animation */
   .item.completing {
-    animation: slideOut 0.3s ease forwards;
+    animation: slideComplete 0.35s ease forwards;
   }
-  @keyframes slideOut {
+  
+  @keyframes slideComplete {
     to {
-      transform: translateX(20px);
+      transform: translateX(30px);
       opacity: 0;
     }
   }
 
-  .detail { display:none; padding:8px; }
-  .back { color:var(--accent); font-weight:700; cursor:pointer; display:inline-block; margin:8px 0 12px; }
-  .d-title { font-size:18px; font-weight:800; margin:0 0 6px; }
-  .d-meta { color:var(--muted); font-size:14px; }
-  .d-snippet { margin-top:12px; }
+  /* Detail view */
+  .detail { 
+    display:none; 
+    padding:20px 0; 
+  }
+  
+  .back { 
+    color:var(--accent); 
+    font-weight:600; 
+    cursor:pointer; 
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    margin:0 0 20px;
+    font-size:14px;
+    transition: all 0.15s ease;
+  }
+  
+  .back:hover {
+    gap:8px;
+  }
+  
+  .d-title { 
+    font-size:20px; 
+    font-weight:700; 
+    margin:0 0 8px;
+    letter-spacing:-0.5px;
+    line-height:1.3;
+  }
+  
+  .d-meta { 
+    color:var(--muted); 
+    font-size:14px;
+    margin-bottom:16px;
+  }
+  
+  .d-snippet { 
+    margin:20px 0;
+    padding:16px;
+    background:var(--bg);
+    border-radius:12px;
+    font-size:14px;
+    line-height:1.6;
+    color:var(--muted);
+  }
+  
+  #dActions {
+    display:flex;
+    gap:10px;
+    margin-top:24px;
+  }
+  
+  #dActions .btn {
+    flex:1;
+  }
 
-  .toast { position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-           background:#111; color:#fff; padding:10px 12px; border-radius:999px; font-size:14px; opacity:0; transition:opacity .2s; }
-  .toast.show { opacity:1; }
+  /* Toast notifications */
+  .toast { 
+    position:fixed; 
+    left:50%; 
+    bottom:24px; 
+    transform:translateX(-50%) translateY(100px);
+    background:var(--fg); 
+    color:var(--card); 
+    padding:12px 20px; 
+    border-radius:24px; 
+    font-size:14px;
+    font-weight:600;
+    opacity:0; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .toast.show { 
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
 
-  .empty { color:var(--muted); text-align:center; padding:28px 10px; }
-  .loading { color:var(--muted); text-align:center; padding:28px 10px; }
-  .error { color:#dc2626; text-align:center; padding:28px 10px; }
+  /* Empty states */
+  .empty { 
+    color:var(--muted); 
+    text-align:center; 
+    padding:48px 20px;
+    font-size:15px;
+    line-height:1.6;
+  }
+  
+  /* Loading animation */
+  .loading { 
+    color:var(--muted); 
+    text-align:center; 
+    padding:48px 20px;
+    font-size:14px;
+    position:relative;
+  }
+  
+  .loading::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    margin: 16px auto 0;
+    border: 2px solid var(--sep);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .error { 
+    color:#dc2626; 
+    text-align:center; 
+    padding:48px 20px;
+    font-size:14px;
+    line-height:1.6;
+  }
+
+  /* Add subtle entrance animations */
+  .item {
+    animation: fadeInUp 0.3s ease backwards;
+  }
+  
+  .item:nth-child(1) { animation-delay: 0.05s; }
+  .item:nth-child(2) { animation-delay: 0.1s; }
+  .item:nth-child(3) { animation-delay: 0.15s; }
+  .item:nth-child(4) { animation-delay: 0.2s; }
+  .item:nth-child(5) { animation-delay: 0.25s; }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .bar {
+      padding: 12px 12px;
+    }
+    main {
+      padding: 12px 12px 32px;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg:#ffffff;
+      --bg:#0f0f0f;
+      --card:#1a1a1a;
+      --muted:#94a3b8;
+      --sep:#262626;
+      --accent:#3b82f6;
+      --accent-light:#1e3a5f;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    header {
+      background:rgba(15,15,15,.72);
+    }
+    
+    .tabs {
+      background:#262626;
+    }
+    
+    .tab.active {
+      background:var(--card);
+    }
+    
+    .toast {
+      background:var(--card);
+      color:var(--fg);
+    }
+  }
 </style>
 </head>
 <body>
@@ -101,19 +446,19 @@
     </div>
     <div class="grow"></div>
     <button id="addTaskBtn" class="btn primary">+ Add</button>
-    <button id="refreshBtn" class="btn">Refresh</button>
+    <button id="refreshBtn" class="btn">↻</button>
   </div>
 </header>
 
 <main>
   <!-- TASKS LIST -->
   <section id="viewTasks" class="list">
-    <div class="loading">Loading tasks...</div>
+    <div class="loading">Loading tasks</div>
   </section>
 
   <!-- NOTES LIST -->
   <section id="viewNotes" class="list" style="display:none;">
-    <div class="loading">Loading notes...</div>
+    <div class="loading">Loading notes</div>
   </section>
 
   <!-- DETAIL VIEW (shared) -->
@@ -122,7 +467,7 @@
     <h2 id="dTitle" class="d-title"></h2>
     <div id="dMeta" class="d-meta"></div>
     <p id="dSnippet" class="d-snippet"></p>
-    <div id="dActions" style="margin-top:16px;"></div>
+    <div id="dActions"></div>
   </section>
 </main>
 
@@ -147,7 +492,7 @@ function toast(msg) {
   const t = $('#toast'); 
   t.textContent = msg; 
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1600);
+  setTimeout(() => t.classList.remove('show'), 2000);
 }
 
 function escapeHtml(s='') {
@@ -157,7 +502,7 @@ function escapeHtml(s='') {
 // API calls using fetch instead of google.script.run
 async function loadTasks() {
   const wrap = $('#viewTasks');
-  wrap.innerHTML = '<div class="loading">Loading tasks...</div>';
+  wrap.innerHTML = '<div class="loading">Loading tasks</div>';
   
   try {
     const response = await fetch(API_CONFIG.GET_TASKS_URL);
@@ -168,14 +513,14 @@ async function loadTasks() {
     renderTasks();
   } catch (err) {
     console.error('Failed to load tasks:', err);
-    wrap.innerHTML = '<div class="error">Failed to load tasks. Please check your connection.</div>';
-    toast('Failed to load tasks');
+    wrap.innerHTML = '<div class="error">Failed to load tasks.<br>Check your connection and try again.</div>';
+    toast('Connection error');
   }
 }
 
 async function loadNotes() {
   const wrap = $('#viewNotes');
-  wrap.innerHTML = '<div class="loading">Loading notes...</div>';
+  wrap.innerHTML = '<div class="loading">Loading notes</div>';
   
   try {
     const response = await fetch(API_CONFIG.GET_NOTES_URL);
@@ -186,8 +531,8 @@ async function loadNotes() {
     renderNotes();
   } catch (err) {
     console.error('Failed to load notes:', err);
-    wrap.innerHTML = '<div class="error">Failed to load notes. Please check your connection.</div>';
-    toast('Failed to load notes');
+    wrap.innerHTML = '<div class="error">Failed to load notes.<br>Check your connection and try again.</div>';
+    toast('Connection error');
   }
 }
 
@@ -208,7 +553,7 @@ async function completeTask(task_id) {
     
     const result = await response.json();
     if (result.ok) {
-      toast('Marked done');
+      toast('✓ Done');
       return true;
     } else {
       toast('Failed to update');
@@ -230,7 +575,7 @@ function renderTasks() {
   wrap.innerHTML = '';
 
   if (!STATE.tasks.length) {
-    wrap.innerHTML = `<div class="empty">No open tasks. Enjoy the calm ✨</div>`;
+    wrap.innerHTML = `<div class="empty">No open tasks<br><span style="font-size:32px;">✨</span><br>Enjoy the calm</div>`;
     return;
   }
 
@@ -259,7 +604,7 @@ function renderTasks() {
           checkbox.classList.remove('checked');
           el.classList.remove('completing');
         }
-      }, 300);
+      }, 350);
     });
 
     // Click on item (not checkbox) opens detail
@@ -269,16 +614,16 @@ function renderTasks() {
       }
     });
 
-    // Optional: Keep swipe for mobile users
+    // Swipe to complete
     let startX = 0, swiped = false;
     el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; swiped = false; });
     el.addEventListener('touchmove', e => {
       const dx = Math.max(0, e.touches[0].clientX - startX);
       el.style.transform = `translateX(${dx}px)`;
+      el.style.opacity = 1 - (dx / 300);
       if (dx > 100) swiped = true;
     });
     el.addEventListener('touchend', async e => {
-      el.style.transform = 'translateX(0)';
       if (swiped) {
         el.classList.add('completing');
         setTimeout(async () => {
@@ -287,22 +632,29 @@ function renderTasks() {
             STATE.tasks = STATE.tasks.filter(x => x.task_id !== t.task_id);
             renderTasks();
           } else {
-            el.classList.remove('completing');
+            el.style.transform = 'translateX(0)';
+            el.style.opacity = '1';
           }
-        }, 300);
+        }, 350);
+      } else {
+        el.style.transform = 'translateX(0)';
+        el.style.opacity = '1';
       }
     });
 
+    // Priority-based pill class
+    const priority = t.priority || 'P2';
+    const pillClass = priority === 'P1' ? 'pill high' : 'pill';
+
     el.innerHTML = `
       <div class="meta">
-        <div class="title">${escapeHtml(t.action || '(no action)')}</div>
+        <div class="title">${escapeHtml(t.action || 'Untitled task')}</div>
         <div class="sub">
-          ${escapeHtml(t.owner || '')}
+          ${escapeHtml(t.owner || 'Unassigned')}
           ${t.due_date_iso ? ' • Due ' + escapeHtml(t.due_date_iso) : ''}
-          ${t.priority ? ' • ' + escapeHtml(t.priority) : ''}
         </div>
       </div>
-      <span class="pill">${escapeHtml(t.status || 'todo')}</span>
+      <span class="${pillClass}">${escapeHtml(priority)}</span>
     `;
     
     // Append checkbox to the right
@@ -319,7 +671,7 @@ function renderNotes() {
   wrap.innerHTML = '';
 
   if (!STATE.notes.length) {
-    wrap.innerHTML = `<div class="empty">No notes yet. Record a quick brain dump 🎙️</div>`;
+    wrap.innerHTML = `<div class="empty">No notes yet<br><span style="font-size:32px;">📝</span><br>Record your thoughts</div>`;
     return;
   }
 
@@ -329,10 +681,10 @@ function renderNotes() {
     el.addEventListener('click', () => openNoteDetail(n));
     el.innerHTML = `
       <div class="meta">
-        <div class="title">${escapeHtml(n.title || '(note)')}</div>
+        <div class="title">${escapeHtml(n.title || 'Untitled note')}</div>
         <div class="sub">${escapeHtml(n.created_at || '')}</div>
       </div>
-      <span class="pill">note</span>
+      <span class="pill">Note</span>
     `;
     wrap.appendChild(el);
   });
@@ -345,18 +697,19 @@ function openTaskDetail(t) {
   $('#viewNotes').style.display = 'none';
   $('#detail').style.display = 'block';
 
-  $('#dTitle').textContent = t.action || '(no action)';
+  $('#dTitle').textContent = t.action || 'Untitled task';
   $('#dMeta').textContent = [
-    t.owner || '',
+    t.owner || 'Unassigned',
     t.due_date_iso ? `Due ${t.due_date_iso}` : '',
-    t.priority || '',
+    t.priority || 'P2',
   ].filter(Boolean).join(' • ');
   $('#dSnippet').textContent = t.transcript_snippet || '';
+  $('#dSnippet').style.display = t.transcript_snippet ? 'block' : 'none';
 
   $('#dActions').innerHTML = `
     <button class="btn" onclick="shareText('${encodeURIComponent(t.action || '')}')">Share</button>
-    <button class="btn" onclick="openLink('${(t.transcript_uri||'').replace(/'/g,'%27')}')">Transcript</button>
-    <button class="btn primary" onclick="completeAndBack('${(t.task_id||'').replace(/'/g,'%27')}')">Mark done</button>
+    ${t.transcript_uri ? `<button class="btn" onclick="openLink('${(t.transcript_uri||'').replace(/'/g,'%27')}')">Source</button>` : ''}
+    <button class="btn primary" onclick="completeAndBack('${(t.task_id||'').replace(/'/g,'%27')}')">Complete</button>
   `;
 }
 
@@ -366,13 +719,14 @@ function openNoteDetail(n) {
   $('#viewNotes').style.display = 'none';
   $('#detail').style.display = 'block';
 
-  $('#dTitle').textContent = n.title || '(note)';
+  $('#dTitle').textContent = n.title || 'Untitled note';
   $('#dMeta').textContent  = n.created_at || '';
   $('#dSnippet').textContent = n.summary || '';
+  $('#dSnippet').style.display = n.summary ? 'block' : 'none';
 
   $('#dActions').innerHTML = `
     <button class="btn" onclick="shareText('${encodeURIComponent(n.summary || n.title || '')}')">Share</button>
-    <button class="btn" onclick="openLink('${(n.transcript_uri||'').replace(/'/g,'%27')}')">Transcript</button>
+    ${n.transcript_uri ? `<button class="btn" onclick="openLink('${(n.transcript_uri||'').replace(/'/g,'%27')}')">Source</button>` : ''}
   `;
 }
 
@@ -418,6 +772,9 @@ $('#backBtn').onclick = () => {
 };
 
 $('#refreshBtn').onclick = async () => {
+  $('#refreshBtn').style.transform = 'rotate(360deg)';
+  setTimeout(() => $('#refreshBtn').style.transform = '', 500);
+  
   if (STATE.mode === 'tasks') {
     await loadTasks(); 
   } else {
@@ -431,6 +788,7 @@ $('#addTaskBtn').onclick = () => {
 };
 
 $('#tabTasks').onclick = async () => {
+  if (STATE.mode === 'tasks') return;
   STATE.mode = 'tasks';
   $('#tabTasks').classList.add('active'); 
   $('#tabNotes').classList.remove('active');
@@ -438,6 +796,7 @@ $('#tabTasks').onclick = async () => {
 };
 
 $('#tabNotes').onclick = async () => {
+  if (STATE.mode === 'notes') return;
   STATE.mode = 'notes';
   $('#tabNotes').classList.add('active'); 
   $('#tabTasks').classList.remove('active');
@@ -474,11 +833,7 @@ $('#tabNotes').onclick = async () => {
     wrap.innerHTML = `
       <div class="error">
         <p><strong>Setup Required:</strong></p>
-        <p>Please update the API_CONFIG at the top of this HTML file with your n8n webhook URLs.</p>
-        <p>1. Import the web-app-api.json workflow into n8n</p>
-        <p>2. Activate the workflow</p>
-        <p>3. Copy the webhook URLs from each webhook node</p>
-        <p>4. Update API_CONFIG in this file</p>
+        <p>Please update the API_CONFIG with your n8n webhook URLs.</p>
       </div>
     `;
     return;
