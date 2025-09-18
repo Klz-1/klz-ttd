@@ -7,7 +7,7 @@
 
 <!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID">
+<meta name="google-signin-client_id" content="1314891293-o1g7g9f673t9flr5vi2mkvr7p6uvcr3t.apps.googleusercontent.com">
 
 <!-- iOS add-to-home-screen niceties -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -413,18 +413,28 @@
   .user-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
   }
 
   .user-email {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--muted);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-info .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: auto;
   }
 
   /* Add subtle entrance animations */
@@ -505,7 +515,6 @@
     <div class="grow"></div>
     <div id="userInfo" class="user-info" style="display:none;">
       <img id="userAvatar" class="user-avatar" src="" alt="User Avatar">
-      <span id="userEmail" class="user-email"></span>
       <button id="signOutBtn" class="btn">Sign Out</button>
     </div>
     <button id="addTaskBtn" class="btn primary">+ Add</button>
@@ -519,7 +528,7 @@
     <h2>Sign in to KLZ TTD</h2>
     <p>Please sign in with your Google account to access your tasks.</p>
     <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID"
+         data-client_id="1314891293-o1g7g9f673t9flr5vi2mkvr7p6uvcr3t.apps.googleusercontent.com"
          data-callback="handleCredentialResponse"
          data-auto_prompt="false">
     </div>
@@ -571,7 +580,7 @@ const API_CONFIG = {
   SECRET: 'klz-ttd'
 };
 
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // Replace with your actual Client ID
+const GOOGLE_CLIENT_ID = '1314891293-o1g7g9f673t9flr5vi2mkvr7p6uvcr3t.apps.googleusercontent.com'; // Replace with your actual Client ID
 
 let STATE = {
   tasks: [],
@@ -647,7 +656,7 @@ function showMainApp() {
 
   // Update user info in header
   $('#userAvatar').src = STATE.user.picture;
-  $('#userEmail').textContent = STATE.user.email;
+  $('#userAvatar').title = STATE.user.email; // Show email on hover
   $('#userInfo').style.display = 'flex';
 }
 
