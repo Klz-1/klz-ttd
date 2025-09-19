@@ -462,10 +462,84 @@
   /* Responsive adjustments */
   @media (max-width: 640px) {
     .bar {
-      padding: 12px 12px;
+      padding: 10px 12px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
+
+    .tabs {
+      order: 2;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .user-info {
+      order: 1;
+      gap: 6px;
+    }
+
+    .user-info .btn {
+      padding: 3px 6px;
+      font-size: 11px;
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+    }
+
+    #addTaskBtn, #refreshBtn {
+      order: 3;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    #addTaskBtn {
+      margin-top: 8px;
+    }
+
+    #refreshBtn {
+      margin-top: 8px;
+      margin-left: auto;
+    }
+
+    h1 {
+      font-size: 16px;
+      order: 0;
+    }
+
+    .grow {
+      display: none;
+    }
+
     main {
       padding: 12px 12px 32px;
+    }
+  }
+
+  /* Extra small screens */
+  @media (max-width: 380px) {
+    .bar {
+      padding: 8px 10px;
+    }
+
+    h1 {
+      font-size: 15px;
+    }
+
+    .tab {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    #addTaskBtn, #refreshBtn {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    .user-avatar {
+      width: 22px;
+      height: 22px;
     }
   }
 
