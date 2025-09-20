@@ -420,6 +420,8 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;
   }
 
   .user-email {
@@ -486,6 +488,8 @@
     .user-avatar {
       width: 24px;
       height: 24px;
+      object-fit: cover;
+      object-position: center top;
     }
 
     #addTaskBtn, #refreshBtn {
@@ -540,6 +544,8 @@
     .user-avatar {
       width: 22px;
       height: 22px;
+      object-fit: cover;
+      object-position: center top;
     }
   }
 
@@ -729,7 +735,7 @@ function showMainApp() {
   $('header').style.display = 'block';
 
   // Update user info in header
-  $('#userAvatar').src = STATE.user.picture;
+  $('#userAvatar').src = 'Kailash Profile Pic 2.JPG';
   $('#userAvatar').title = STATE.user.email; // Show email on hover
   $('#userInfo').style.display = 'flex';
 }
