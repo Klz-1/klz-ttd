@@ -849,18 +849,6 @@ async function apiCall(url, options = {}) {
     ...options.headers
   };
 
-  // Debug log for CREATE_TASK_URL only
-  if (url === API_CONFIG.CREATE_TASK_URL) {
-    console.log('Token being sent:', STATE.token ? `${STATE.token.substring(0, 50)}...` : 'No token');
-    console.log('User ID being sent:', STATE.user.email);
-    console.log('Full headers:', headers);
-
-    // Test the token directly with Google
-    fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${STATE.token}`)
-      .then(r => r.json())
-      .then(data => console.log('Direct Google validation:', data))
-      .catch(err => console.log('Direct Google validation error:', err));
-  }
 
   try {
     const response = await fetch(url, {
@@ -1225,10 +1213,6 @@ $('#addTaskForm').onsubmit = async (e) => {
 
   if (!taskText) return;
 
-  console.log('=== TASK CREATION DEBUG ===');
-  console.log('1. Attempting to create task:', taskText);
-  console.log('2. Current token exists?', !!STATE.token);
-  console.log('3. Current user:', STATE.user?.email || 'No user');
 
   try {
     const result = await apiCall(API_CONFIG.CREATE_TASK_URL, {
