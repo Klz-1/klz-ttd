@@ -1225,7 +1225,10 @@ $('#addTaskForm').onsubmit = async (e) => {
 
   if (!taskText) return;
 
-  console.log('Attempting to create task:', taskText);
+  console.log('=== TASK CREATION DEBUG ===');
+  console.log('1. Attempting to create task:', taskText);
+  console.log('2. Current token exists?', !!STATE.token);
+  console.log('3. Current user:', STATE.user?.email || 'No user');
 
   try {
     const result = await apiCall(API_CONFIG.CREATE_TASK_URL, {
