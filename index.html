@@ -1212,6 +1212,8 @@ $('#addTaskForm').onsubmit = async (e) => {
 
   if (!taskText) return;
 
+  console.log('Attempting to create task:', taskText);
+
   try {
     const result = await apiCall(API_CONFIG.CREATE_TASK_URL, {
       method: 'POST',
@@ -1224,17 +1226,20 @@ $('#addTaskForm').onsubmit = async (e) => {
       })
     });
 
+    console.log('Task creation result:', result);
+
     if (result.ok) {
       toast('✓ Task added');
       closeAddModal();
       // Reload tasks to show the new one
       await loadTasks();
     } else {
-      toast('Failed to add task');
+      console.error('Task creation failed:', result);
+      toast(result.error || 'Failed to add task');
     }
   } catch (err) {
     console.error('Error adding task:', err);
-    toast('Failed to add task');
+    toast('Failed to add task - check console');
   }
 };
 
