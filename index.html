@@ -849,6 +849,19 @@ async function apiCall(url, options = {}) {
     ...options.headers
   };
 
+  // Debug log for CREATE_TASK_URL only
+  if (url === API_CONFIG.CREATE_TASK_URL) {
+    console.log('Token being sent:', STATE.token ? `${STATE.token.substring(0, 50)}...` : 'No token');
+    console.log('User ID being sent:', STATE.user.email);
+    console.log('Full headers:', headers);
+
+    // Test the token directly with Google
+    fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${STATE.token}`)
+      .then(r => r.json())
+      .then(data => console.log('Direct Google validation:', data))
+      .catch(err => console.log('Direct Google validation error:', err));
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
