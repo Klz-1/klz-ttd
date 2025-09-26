@@ -374,6 +374,58 @@
     line-height:1.6;
   }
 
+  /* Modal Styles */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+  .modal-content {
+    background: var(--card);
+    padding: 24px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .modal-content h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+
+  #taskInput {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--sep);
+    border-radius: 8px;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--fg);
+    margin-bottom: 16px;
+  }
+
+  #taskInput:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
   /* Login Overlay */
   .login-overlay {
     position: fixed;
@@ -492,13 +544,13 @@
       object-position: center top;
     }
 
-    #addTaskBtn, #refreshBtn {
+    #voiceBtn, #textBtn, #refreshBtn {
       order: 3;
       padding: 6px 10px;
       font-size: 13px;
     }
 
-    #addTaskBtn {
+    #voiceBtn, #textBtn {
       margin-top: 8px;
     }
 
@@ -536,7 +588,7 @@
       font-size: 12px;
     }
 
-    #addTaskBtn, #refreshBtn {
+    #voiceBtn, #textBtn, #refreshBtn {
       padding: 5px 8px;
       font-size: 12px;
     }
@@ -579,6 +631,23 @@
       background:var(--card);
       color:var(--fg);
     }
+
+    .modal-content {
+      background: var(--card);
+    }
+
+    #taskInput {
+      background: var(--card);
+      border-color: var(--sep);
+    }
+
+    .options-menu {
+      background: var(--card);
+    }
+
+    .option-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
   }
 </style>
 </head>
@@ -597,7 +666,8 @@
       <img id="userAvatar" class="user-avatar" src="" alt="User Avatar">
       <button id="signOutBtn" class="btn">Sign Out</button>
     </div>
-    <button id="addTaskBtn" class="btn primary">+ Add</button>
+    <button id="voiceBtn" class="btn primary" title="Voice Input">🎤</button>
+    <button id="textBtn" class="btn" title="Text Input">✏️</button>
     <button id="refreshBtn" class="btn">↻</button>
   </div>
 </header>
@@ -620,6 +690,20 @@
          data-shape="rectangular"
          data-logo_alignment="left">
     </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div id="addTaskModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Add New Task</h3>
+    <form id="addTaskForm">
+      <input type="text" id="taskInput" placeholder="What needs to be done?" required>
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeAddModal()">Cancel</button>
+        <button type="submit" class="btn primary">Add Task</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -657,6 +741,7 @@ const API_CONFIG = {
   GET_TASKS_URL: 'https://n8n.chouseservice.com/webhook/get-tasks',
   GET_NOTES_URL: 'https://n8n.chouseservice.com/webhook/get-notes',
   COMPLETE_TASK_URL: 'https://n8n.chouseservice.com/webhook/complete-task',
+  CREATE_TASK_URL: 'https://n8n.chouseservice.com/webhook/create-task',
   SECRET: 'klz-ttd'
 };
 
@@ -1104,9 +1189,53 @@ $('#refreshBtn').onclick = async () => {
   }
 };
 
-$('#addTaskBtn').onclick = () => {
-  // This will invoke your iOS shortcut
+// Voice button - invoke iOS shortcut
+$('#voiceBtn').onclick = () => {
   window.location.href = 'shortcuts://run-shortcut?name=Jarvis';
+};
+
+// Text button - open text input modal
+$('#textBtn').onclick = () => {
+  $('#addTaskModal').style.display = 'flex';
+  $('#taskInput').focus();
+};
+
+function closeAddModal() {
+  $('#addTaskModal').style.display = 'none';
+  $('#taskInput').value = '';
+}
+
+// Handle form submission
+$('#addTaskForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const taskText = $('#taskInput').value.trim();
+
+  if (!taskText) return;
+
+  try {
+    const result = await apiCall(API_CONFIG.CREATE_TASK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: taskText,
+        secret: API_CONFIG.SECRET
+      })
+    });
+
+    if (result.ok) {
+      toast('✓ Task added');
+      closeAddModal();
+      // Reload tasks to show the new one
+      await loadTasks();
+    } else {
+      toast('Failed to add task');
+    }
+  } catch (err) {
+    console.error('Error adding task:', err);
+    toast('Failed to add task');
+  }
 };
 
 $('#tabTasks').onclick = async () => {
