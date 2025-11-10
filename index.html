@@ -768,7 +768,8 @@ function toast(msg) {
 }
 
 function escapeHtml(s='') {
-  return s.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  // Handle null, undefined, numbers, and other non-string types
+  return String(s || '').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
 // Authentication Functions
