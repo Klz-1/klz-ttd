@@ -25,6 +25,7 @@
     --accent-light:#dbeafe;
     --ok:#10b981; 
     --warn:#f59e0b;
+    --danger:#dc2626;
     --shadow: 0 1px 3px rgba(0,0,0,0.08);
     --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
   }
@@ -195,9 +196,19 @@
     text-transform:uppercase;
   }
   
-  .pill.high {
+  .pill.p0 {
     background:#fee2e2;
     color:#dc2626;
+  }
+  
+  .pill.p1 {
+    background:#fef3c7;
+    color:#d97706;
+  }
+  
+  .pill.p2 {
+    background:var(--accent-light);
+    color:var(--accent);
   }
   
   .item.done { 
@@ -298,6 +309,18 @@
     font-size:14px;
     line-height:1.6;
     color:var(--muted);
+  }
+  
+  /* Priority selector in detail view */
+  .d-priority {
+    margin: 16px 0;
+  }
+  
+  .d-priority-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
   }
   
   #dActions {
@@ -417,6 +440,70 @@
 
   #taskInput:focus {
     outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Priority Selector Styles */
+  .priority-selector {
+    margin-bottom: 16px;
+  }
+
+  .priority-selector label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .priority-pills {
+    display: flex;
+    gap: 8px;
+  }
+
+  .priority-pill {
+    flex: 1;
+    padding: 10px 16px;
+    border: 2px solid var(--sep);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+    background: var(--card);
+    color: var(--muted);
+  }
+
+  .priority-pill:hover {
+    border-color: var(--accent);
+  }
+
+  .priority-pill.active {
+    border-color: transparent;
+  }
+
+  .priority-pill[data-priority="P0"] {
+    color: #dc2626;
+  }
+  .priority-pill[data-priority="P0"].active {
+    background: #fee2e2;
+    border-color: #dc2626;
+  }
+
+  .priority-pill[data-priority="P1"] {
+    color: #d97706;
+  }
+  .priority-pill[data-priority="P1"].active {
+    background: #fef3c7;
+    border-color: #d97706;
+  }
+
+  .priority-pill[data-priority="P2"] {
+    color: var(--accent);
+  }
+  .priority-pill[data-priority="P2"].active {
+    background: var(--accent-light);
     border-color: var(--accent);
   }
 
@@ -648,6 +735,10 @@
     .option-btn:hover {
       background: rgba(255,255,255,0.1);
     }
+
+    .priority-pill {
+      background: var(--card);
+    }
   }
 </style>
 </head>
@@ -699,6 +790,14 @@
     <h3>Add New Task</h3>
     <form id="addTaskForm">
       <input type="text" id="taskInput" placeholder="What needs to be done?" required>
+      <div class="priority-selector">
+        <label>Priority</label>
+        <div class="priority-pills">
+          <div class="priority-pill" data-priority="P0">P0</div>
+          <div class="priority-pill" data-priority="P1">P1</div>
+          <div class="priority-pill active" data-priority="P2">P2</div>
+        </div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn" onclick="closeAddModal()">Cancel</button>
         <button type="submit" class="btn primary">Add Task</button>
@@ -728,6 +827,14 @@
     <div class="back" id="backBtn">← Back</div>
     <h2 id="dTitle" class="d-title"></h2>
     <div id="dMeta" class="d-meta"></div>
+    <div id="dPriority" class="d-priority">
+      <div class="d-priority-label">Priority</div>
+      <div class="priority-pills">
+        <div class="priority-pill" data-priority="P0">P0</div>
+        <div class="priority-pill" data-priority="P1">P1</div>
+        <div class="priority-pill" data-priority="P2">P2</div>
+      </div>
+    </div>
     <p id="dSnippet" class="d-snippet"></p>
     <div id="dActions"></div>
   </section>
@@ -745,7 +852,7 @@ const API_CONFIG = {
   SECRET: 'klz-ttd'
 };
 
-const GOOGLE_CLIENT_ID = '1314891293-o1g7g9f673t9flr5vi2mkvr7p6uvcr3t.apps.googleusercontent.com'; // Replace with your actual Client ID
+const GOOGLE_CLIENT_ID = '1314891293-o1g7g9f673t9flr5vi2mkvr7p6uvcr3t.apps.googleusercontent.com';
 
 let STATE = {
   tasks: [],
@@ -754,7 +861,8 @@ let STATE = {
   mode: 'tasks',
   current: null,
   user: null,
-  token: null
+  token: null,
+  selectedPriority: 'P2'
 };
 
 const $ = sel => document.querySelector(sel);
@@ -768,15 +876,49 @@ function toast(msg) {
 }
 
 function escapeHtml(s='') {
-  // Handle null, undefined, numbers, and other non-string types
   return String(s || '').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
+
+// Priority pill click handlers for Add Task modal
+$$('#addTaskModal .priority-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    $$('#addTaskModal .priority-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    STATE.selectedPriority = pill.dataset.priority;
+  });
+});
+
+// Priority pill click handlers for Detail view
+$$('#dPriority .priority-pill').forEach(pill => {
+  pill.addEventListener('click', async () => {
+    if (!STATE.current || STATE.current.type !== 'task') return;
+    
+    const newPriority = pill.dataset.priority;
+    const task = STATE.current.data;
+    
+    if (task.priority === newPriority) return;
+    
+    // Update UI immediately
+    $$('#dPriority .priority-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    
+    // Call API to update priority
+    const success = await updateTaskPriority(task.task_id, newPriority);
+    if (success) {
+      task.priority = newPriority;
+      toast('✓ Priority updated');
+    } else {
+      // Revert UI
+      $$('#dPriority .priority-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.priority === task.priority);
+      });
+    }
+  });
+});
 
 // Authentication Functions
 function handleCredentialResponse(response) {
   const token = response.credential;
-
-  // Decode JWT to get user info (basic decode, validation happens server-side)
   const payload = JSON.parse(atob(token.split('.')[1]));
 
   STATE.user = {
@@ -786,7 +928,6 @@ function handleCredentialResponse(response) {
   };
   STATE.token = token;
 
-  // Store in session storage
   sessionStorage.setItem('google_token', token);
   sessionStorage.setItem('user_info', JSON.stringify(STATE.user));
 
@@ -820,9 +961,8 @@ function showMainApp() {
   $('main').style.display = 'block';
   $('header').style.display = 'block';
 
-  // Update user info in header
   $('#userAvatar').src = 'Kailash Profile Pic 2.JPG';
-  $('#userAvatar').title = STATE.user.email; // Show email on hover
+  $('#userAvatar').title = STATE.user.email;
   $('#userInfo').style.display = 'flex';
 }
 
@@ -850,7 +990,6 @@ async function apiCall(url, options = {}) {
     ...options.headers
   };
 
-
   try {
     const response = await fetch(url, {
       ...options,
@@ -858,7 +997,6 @@ async function apiCall(url, options = {}) {
     });
 
     if (response.status === 401) {
-      // Token expired or invalid
       signOut();
       throw new Error('Authentication failed');
     }
@@ -909,11 +1047,10 @@ async function completeTask(task_id) {
   try {
     const result = await apiCall(API_CONFIG.COMPLETE_TASK_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         task_id: task_id,
+        status: 'completed',
         secret: API_CONFIG.SECRET
       })
     });
@@ -927,6 +1064,26 @@ async function completeTask(task_id) {
     }
   } catch (err) {
     console.error('Failed to complete task:', err);
+    toast('Failed to update');
+    return false;
+  }
+}
+
+async function updateTaskPriority(task_id, priority) {
+  try {
+    const result = await apiCall(API_CONFIG.COMPLETE_TASK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        task_id: task_id,
+        priority: priority,
+        secret: API_CONFIG.SECRET
+      })
+    });
+
+    return result.ok;
+  } catch (err) {
+    console.error('Failed to update priority:', err);
     toast('Failed to update');
     return false;
   }
@@ -946,35 +1103,39 @@ function renderTasks() {
     return;
   }
 
+  // Sort by priority (P0 first, then P1, then P2)
+  const priorityOrder = { 'P0': 0, 'P1': 1, 'P2': 2 };
+  STATE.tasks.sort((a, b) => {
+    const pa = priorityOrder[a.priority] ?? 2;
+    const pb = priorityOrder[b.priority] ?? 2;
+    return pa - pb;
+  });
+
   STATE.tasks.forEach((t, idx) => {
     const el = document.createElement('div');
     el.className = 'item';
     el.dataset.index = idx;
     el.dataset.taskId = t.task_id;
 
-    // Create checkbox element
     const checkbox = document.createElement('div');
     checkbox.className = 'checkbox';
     checkbox.addEventListener('click', async (e) => {
-      e.stopPropagation(); // Prevent opening detail view
+      e.stopPropagation();
       checkbox.classList.add('checked');
       el.classList.add('completing');
       
-      // Wait for animation
       setTimeout(async () => {
         const success = await completeTask(t.task_id);
         if (success) {
           STATE.tasks = STATE.tasks.filter(x => x.task_id !== t.task_id);
           renderTasks();
         } else {
-          // Reset if failed
           checkbox.classList.remove('checked');
           el.classList.remove('completing');
         }
       }, 350);
     });
 
-    // Click on item (not checkbox) opens detail
     el.addEventListener('click', (e) => {
       if (!e.target.classList.contains('checkbox')) {
         openTaskDetail(t);
@@ -1009,9 +1170,8 @@ function renderTasks() {
       }
     });
 
-    // Priority-based pill class
     const priority = t.priority || 'P2';
-    const pillClass = priority === 'P1' ? 'pill high' : 'pill';
+    const pillClass = `pill ${priority.toLowerCase()}`;
 
     el.innerHTML = `
       <div class="meta">
@@ -1024,7 +1184,6 @@ function renderTasks() {
       <span class="${pillClass}">${escapeHtml(priority)}</span>
     `;
     
-    // Append checkbox to the right
     el.appendChild(checkbox);
     wrap.appendChild(el);
   });
@@ -1049,7 +1208,6 @@ function renderCompleted() {
     el.dataset.index = idx;
     el.dataset.taskId = t.task_id;
 
-    // Click on item opens detail
     el.addEventListener('click', () => openTaskDetail(t));
 
     el.innerHTML = `
@@ -1099,6 +1257,7 @@ function renderNotes() {
 function openTaskDetail(t) {
   STATE.current = { type:'task', data:t };
   $('#viewTasks').style.display = 'none';
+  $('#viewCompleted').style.display = 'none';
   $('#viewNotes').style.display = 'none';
   $('#detail').style.display = 'block';
 
@@ -1106,26 +1265,38 @@ function openTaskDetail(t) {
   $('#dMeta').textContent = [
     t.owner || 'Unassigned',
     t.due_date_iso ? `Due ${t.due_date_iso}` : '',
-    t.priority || 'P2',
   ].filter(Boolean).join(' • ');
+  
+  // Set priority pills
+  const priority = t.priority || 'P2';
+  $$('#dPriority .priority-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.priority === priority);
+  });
+  
+  // Show/hide priority selector based on task status
+  $('#dPriority').style.display = t.status === 'completed' ? 'none' : 'block';
+  
   $('#dSnippet').textContent = t.transcript_snippet || '';
   $('#dSnippet').style.display = t.transcript_snippet ? 'block' : 'none';
 
+  const isCompleted = t.status === 'completed';
   $('#dActions').innerHTML = `
     <button class="btn" onclick="shareText('${encodeURIComponent(t.action || '')}')">Share</button>
     ${t.transcript_uri ? `<button class="btn" onclick="openLink('${(t.transcript_uri||'').replace(/'/g,'%27')}')">Source</button>` : ''}
-    <button class="btn primary" onclick="completeAndBack('${(t.task_id||'').replace(/'/g,'%27')}')">Complete</button>
+    ${!isCompleted ? `<button class="btn primary" onclick="completeAndBack('${(t.task_id||'').replace(/'/g,'%27')}')">Complete</button>` : ''}
   `;
 }
 
 function openNoteDetail(n) {
   STATE.current = { type:'note', data:n };
   $('#viewTasks').style.display = 'none';
+  $('#viewCompleted').style.display = 'none';
   $('#viewNotes').style.display = 'none';
   $('#detail').style.display = 'block';
 
   $('#dTitle').textContent = n.title || 'Untitled note';
   $('#dMeta').textContent  = n.created_at || '';
+  $('#dPriority').style.display = 'none';
   $('#dSnippet').textContent = n.summary || '';
   $('#dSnippet').style.display = n.summary ? 'block' : 'none';
 
@@ -1139,7 +1310,6 @@ function openNoteDetail(n) {
 async function completeAndBack(task_id) {
   const success = await completeTask(task_id);
   if (success) {
-    // remove from list immediately
     STATE.tasks = STATE.tasks.filter(x => x.task_id !== task_id);
     $('#detail').style.display = 'none';
     if (STATE.mode === 'tasks') {
@@ -1186,18 +1356,22 @@ $('#refreshBtn').onclick = async () => {
 
   if (STATE.mode === 'tasks' || STATE.mode === 'completed') {
     await loadTasks();
+    if (STATE.mode === 'completed') renderCompleted();
   } else {
     await loadNotes();
   }
 };
 
-// Voice button - invoke iOS shortcut
 $('#voiceBtn').onclick = () => {
   window.location.href = 'shortcuts://run-shortcut?name=Jarvis';
 };
 
-// Text button - open text input modal
 $('#textBtn').onclick = () => {
+  // Reset priority selection to P2
+  STATE.selectedPriority = 'P2';
+  $$('#addTaskModal .priority-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.priority === 'P2');
+  });
   $('#addTaskModal').style.display = 'flex';
   $('#taskInput').focus();
 };
@@ -1207,40 +1381,33 @@ function closeAddModal() {
   $('#taskInput').value = '';
 }
 
-// Handle form submission
 $('#addTaskForm').onsubmit = async (e) => {
   e.preventDefault();
   const taskText = $('#taskInput').value.trim();
 
   if (!taskText) return;
 
-
   try {
     const result = await apiCall(API_CONFIG.CREATE_TASK_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: taskText,
+        priority: STATE.selectedPriority,
         secret: API_CONFIG.SECRET
       })
     });
 
-    console.log('Task creation result:', result);
-
     if (result.ok) {
       toast('✓ Task added');
       closeAddModal();
-      // Reload tasks to show the new one
       await loadTasks();
     } else {
-      console.error('Task creation failed:', result);
       toast(result.error || 'Failed to add task');
     }
   } catch (err) {
     console.error('Error adding task:', err);
-    toast('Failed to add task - check console');
+    toast('Failed to add task');
   }
 };
 
@@ -1271,7 +1438,7 @@ $('#tabNotes').onclick = async () => {
   await loadNotes();
 };
 
-// Edge-swipe to go back from detail (left-to-right)
+// Edge-swipe to go back from detail
 (function enableBackSwipe(){
   let sx=0, sy=0, tracking=false;
   document.addEventListener('touchstart', e=>{
@@ -1279,7 +1446,7 @@ $('#tabNotes').onclick = async () => {
     const t = e.touches[0]; 
     sx = t.clientX; 
     sy = t.clientY; 
-    tracking = sx < 30; // left edge
+    tracking = sx < 30;
   }, {passive:true});
   document.addEventListener('touchmove', e=>{
     if (!tracking) return;
@@ -1293,12 +1460,10 @@ $('#tabNotes').onclick = async () => {
   }, {passive:true});
 })();
 
-// Event Listeners
 $('#signOutBtn').onclick = signOut;
 
 /* ---------- BOOT ---------- */
 window.onload = function() {
-  // Check if API URLs are configured
   if (API_CONFIG.GET_TASKS_URL.includes('YOUR-N8N-DOMAIN')) {
     const wrap = $('#viewTasks');
     wrap.innerHTML = `
@@ -1310,12 +1475,10 @@ window.onload = function() {
     return;
   }
 
-  // Check authentication on page load
   if (!checkAuth()) {
     return;
   }
 
-  // Continue with app initialization
   loadTasks();
 };
 </script>
